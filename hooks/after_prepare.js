@@ -2,16 +2,16 @@ var pluginId = 'cordova-plugin-cpp-bridge';
 var pluginName = 'CordovaCppBridge';
 var bridgeFileName = 'CDVCppBridge';
 
-module.exports = function(context) {
-    var path              = context.requireCordovaModule('path'),
-        fs                = context.requireCordovaModule('fs'),
-        crypto            = context.requireCordovaModule('crypto'),
-        Q                 = context.requireCordovaModule('q'),
-        cordova_util      = context.requireCordovaModule('cordova-lib/src/cordova/util'),
-        platforms         = context.requireCordovaModule('cordova-lib/src/platforms/platforms'),
-        Parser            = context.requireCordovaModule('cordova-lib/src/cordova/metadata/parser'),
-        ParserHelper      = context.requireCordovaModule('cordova-lib/src/cordova/metadata/parserhelper/ParserHelper'),
-        ConfigParser      = context.requireCordovaModule('cordova-common').ConfigParser;
+module.exports = function (context) {
+    var path = require('path'),
+        fs = require('fs'),
+        crypto = require('crypto'),
+        Q = require('q'),
+        cordova_util = require('cordova-lib/src/cordova/util'),
+        platforms = require('cordova-lib/src/platforms/platforms'),
+        Parser = require('cordova-lib/src/cordova/metadata/parser'),
+        ParserHelper = require('cordova-lib/src/cordova/metadata/parserhelper/ParserHelper'),
+        ConfigParser = require('cordova-common').ConfigParser;
 
     var projectRoot = cordova_util.cdProjectRoot();
 
@@ -24,7 +24,7 @@ module.exports = function(context) {
     normalizeClassDefine(classDefine);
     var allClassList = Object.keys(classDefine);
 
-    context.opts.platforms.forEach(function(platform) {
+    context.opts.platforms.forEach(function (platform) {
         var platformPath = path.join(projectRoot, 'platforms', platform);
         var platformApi = platforms.getPlatformApi(platform, platformPath);
         var platformInfo = platformApi.getPlatformInfo();
@@ -45,7 +45,7 @@ module.exports = function(context) {
             var classElement = classDefine[className];
 
             classElement.methods = classElement.methods || {};
-            classElement.constructor = classElement.constructor || {"params": []};
+            classElement.constructor = classElement.constructor || { "params": [] };
             classElement.constructor.params = classElement.constructor.params || [];
 
             for (var methodName in classElement.methods) {
@@ -59,11 +59,11 @@ module.exports = function(context) {
 }
 
 
-var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, headerFiles, sourceFiles) {
+var IOS_OSXManager = function (context, platformInfo, cppDir, classDefine, headerFiles, sourceFiles) {
 
-    var path              = context.requireCordovaModule('path'),
-        fs                = context.requireCordovaModule('fs'),
-        cordova_util      = context.requireCordovaModule('cordova-lib/src/cordova/util');
+    var path = require('path'),
+        fs = require('fs'),
+        cordova_util = require('cordova-lib/src/cordova/util');
 
     var projectRoot = cordova_util.cdProjectRoot();
 
@@ -84,7 +84,7 @@ var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, header
     var destCppDir = path.join(destPluginDir, 'cpp');
 
 
-    this.setup = function() {
+    this.setup = function () {
         if (!fs.existsSync(destPluginDir)) {
             fs.mkdirSync(destPluginDir);
         }
@@ -92,11 +92,11 @@ var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, header
             fs.mkdirSync(destCppDir);
         }
 
-        var xcode = context.requireCordovaModule('xcode');
+        var xcode = require('xcode');
         var pbxproj = platformInfo.locations.pbxproj;
         var proj = xcode.project(pbxproj);
 
-        proj.parse(function(err) {
+        proj.parse(function (err) {
             copyCppFiles(context, cppDir, destCppDir, headerFiles, sourceFiles);
             addToPbxproj(proj, headerFiles, sourceFiles);
 
@@ -122,11 +122,11 @@ var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, header
             var classElement = classDefine[className];
 
             // constructor
-            prototypeList.push(createContentWithTemplate(objc_prototypeTemplate, {'METHOD': className + '_new'}));
+            prototypeList.push(createContentWithTemplate(objc_prototypeTemplate, { 'METHOD': className + '_new' }));
             methodList.push(createConstructor(classElement.constructor, className));
 
             // destructor
-            prototypeList.push(createContentWithTemplate(objc_prototypeTemplate, {'METHOD': className + '_delete'}));
+            prototypeList.push(createContentWithTemplate(objc_prototypeTemplate, { 'METHOD': className + '_delete' }));
             methodList.push(createDestructor(className));
 
             // method
@@ -142,7 +142,7 @@ var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, header
             }
         }
 
-        var includeList = headerFiles.map(function(f) {return '#include "' + f + '"'});
+        var includeList = headerFiles.map(function (f) { return '#include "' + f + '"' });
 
         var header = createContentWithTemplate(objc_headerTemplate, {
             'INCLUDE': includeList.join('\n'),
@@ -257,10 +257,10 @@ var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, header
     }
 
     function addToPbxproj(proj, headerFiles, sourceFiles) {
-        headerFiles.forEach(function(f) {
+        headerFiles.forEach(function (f) {
             proj.addHeaderFile(path.join(pluginId, 'cpp', f));
         });
-        sourceFiles.forEach(function(f) {
+        sourceFiles.forEach(function (f) {
             proj.addSourceFile(path.join(pluginId, 'cpp', f));
         });
     }
@@ -320,19 +320,19 @@ var IOS_OSXManager = function(context, platformInfo, cppDir, classDefine, header
 }
 
 
-var AndroidManager = function(context, platformInfo, cppDir, classDefine, headerFiles, sourceFiles) {
+var AndroidManager = function (context, platformInfo, cppDir, classDefine, headerFiles, sourceFiles) {
 
-    var path              = context.requireCordovaModule('path'),
-        fs                = context.requireCordovaModule('fs'),
-        shell             = context.requireCordovaModule('shelljs'),
-        properties_parser = context.requireCordovaModule('properties-parser'),
-        cordova_util      = context.requireCordovaModule('cordova-lib/src/cordova/util');
+    var path = require('path'),
+        fs = require('fs'),
+        shell = require('shelljs'),
+        properties_parser = require('properties-parser'),
+        cordova_util = require('cordova-lib/src/cordova/util');
 
     var javaPackage = ['com', 'tkyaji', 'cordova'];
 
     var projectRoot = cordova_util.cdProjectRoot();
 
-    var templateDir = path.join(projectRoot, 'plugins',  pluginId, '/templates');
+    var templateDir = path.join(projectRoot, 'plugins', pluginId, '/templates');
 
     var cpp_sourceTemplate = fs.readFileSync(path.join(templateDir, 'cpp_source'), 'utf8');
     var cpp_methodTemplate = fs.readFileSync(path.join(templateDir, 'cpp_method'), 'utf8');
@@ -353,10 +353,10 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
     var destPluginDir = path.join(platformInfo.locations.root, 'src', javaPackage.join('/'));
     var destCppDir = path.join(platformInfo.locations.root, 'cpp');
 
-    this.setup = function() {
+    this.setup = function () {
 
         var tmpPath = path.join(platformInfo.locations.root, 'src');
-        javaPackage.forEach(function(p) {
+        javaPackage.forEach(function (p) {
             tmpPath = path.join(tmpPath, p);
             if (!fs.existsSync(tmpPath)) {
                 fs.mkdirSync(tmpPath);
@@ -416,7 +416,7 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
             }
         }
 
-        var includeList = headerFiles.map(function(f) {return '#include "' + f + '"'});
+        var includeList = headerFiles.map(function (f) { return '#include "' + f + '"' });
 
         var bridgeCpp = createContentWithTemplate(cpp_sourceTemplate, {
             'INCLUDE': includeList.join('\n'),
@@ -448,8 +448,8 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
             inParams += ', ' + jType + ' param' + i;
             toCppParamList.push(getToCppTypeWithParam_cpp(paramType, 'param' + i));
             if (paramType == 'string') {
-                getStringList.push(createContentWithTemplate(cpp_getStringTemplate, {'INDEX': i}));
-                releaseStringList.push(createContentWithTemplate(cpp_releaseStringTemplate, {'INDEX': i}));
+                getStringList.push(createContentWithTemplate(cpp_getStringTemplate, { 'INDEX': i }));
+                releaseStringList.push(createContentWithTemplate(cpp_releaseStringTemplate, { 'INDEX': i }));
             }
         }
 
@@ -520,7 +520,7 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
 
         var cppMethod = ['Java'].concat(javaPackage).concat([bridgeFileName, className + '0delete']).join('_');
 
-        var getInstance = createContentWithTemplate(cpp_getInstanceTemplate, {'CLASS': className});
+        var getInstance = createContentWithTemplate(cpp_getInstanceTemplate, { 'CLASS': className });
 
         var callMethod = '    delete cppInstance;';
 
@@ -583,17 +583,17 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
             inParams += ', ' + jType + ' param' + i;
             toCppParamList.push(getToCppTypeWithParam_cpp(paramType, 'param' + i));
             if (paramType == 'string') {
-                getStringList.push(createContentWithTemplate(cpp_getStringTemplate, {'INDEX': i}));
-                releaseStringList.push(createContentWithTemplate(cpp_releaseStringTemplate, {'INDEX': i}));
+                getStringList.push(createContentWithTemplate(cpp_getStringTemplate, { 'INDEX': i }));
+                releaseStringList.push(createContentWithTemplate(cpp_releaseStringTemplate, { 'INDEX': i }));
             }
         }
 
-        var methodType = (methodElement.is_static) ? 'sm': 'mm';
+        var methodType = (methodElement.is_static) ? 'sm' : 'mm';
         var cppMethod = ['Java'].concat(javaPackage).concat([bridgeFileName]).join('_') + '_' + [className, methodType, methodName].join('0');
 
         var getInstance = '';
         if (!methodElement.is_static) {
-            getInstance = createContentWithTemplate(cpp_getInstanceTemplate, {'CLASS': className});
+            getInstance = createContentWithTemplate(cpp_getInstanceTemplate, { 'CLASS': className });
         }
 
         var receiveReturn = '';
@@ -624,7 +624,7 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
 
     function createJavaMethodSignature(methodElement, methodName, className) {
 
-        var methodType = (methodElement.is_static) ? 'sm': 'mm';
+        var methodType = (methodElement.is_static) ? 'sm' : 'mm';
         var nativeMethodName = [className, methodType, methodName].join('0');
 
         var paramList = [];
@@ -659,7 +659,7 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
             idx++;
         }
 
-        var methodType = (methodElement.is_static) ? 'sm': 'mm';
+        var methodType = (methodElement.is_static) ? 'sm' : 'mm';
         var nativeMethodName = [className, methodType, methodName].join('0');
         var actionName = [className, methodType, methodName].join('_');
 
@@ -668,7 +668,7 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
         if (methodElement.return != 'void') {
             receiveReturn = getType_java(methodElement.return) + ' ret = ';
             if (methodElement.return == 'double') {
-                methodReturn =  ', new JSONObject("{ret:" + ret + "}")';
+                methodReturn = ', new JSONObject("{ret:" + ret + "}")';
             } else {
                 methodReturn = ', ret';
             }
@@ -785,24 +785,24 @@ var AndroidManager = function(context, platformInfo, cppDir, classDefine, header
 }
 
 
-var JsManager = function(context, platformInfo, classDefine) {
+var JsManager = function (context, platformInfo, classDefine) {
 
-    var path              = context.requireCordovaModule('path'),
-        fs                = context.requireCordovaModule('fs'),
-        cordova_util      = context.requireCordovaModule('cordova-lib/src/cordova/util');
+    var path = require('path'),
+        fs = require('fs'),
+        cordova_util = require('cordova-lib/src/cordova/util');
 
     var projectRoot = cordova_util.cdProjectRoot();
 
-    var js_sourceTemplate = fs.readFileSync(path.join(projectRoot, 'plugins' , pluginId, 'templates/js_source'), 'utf8');
-    var js_classTemplate = fs.readFileSync(path.join(projectRoot, 'plugins' , pluginId, 'templates/js_class'), 'utf8');
-    var js_methodTemplate = fs.readFileSync(path.join(projectRoot, 'plugins' , pluginId, 'templates/js_method'), 'utf8');
-    var js_staticMethodTemplate = fs.readFileSync(path.join(projectRoot, 'plugins' , pluginId, 'templates/js_static_method'), 'utf8');
+    var js_sourceTemplate = fs.readFileSync(path.join(projectRoot, 'plugins', pluginId, 'templates/js_source'), 'utf8');
+    var js_classTemplate = fs.readFileSync(path.join(projectRoot, 'plugins', pluginId, 'templates/js_class'), 'utf8');
+    var js_methodTemplate = fs.readFileSync(path.join(projectRoot, 'plugins', pluginId, 'templates/js_method'), 'utf8');
+    var js_staticMethodTemplate = fs.readFileSync(path.join(projectRoot, 'plugins', pluginId, 'templates/js_static_method'), 'utf8');
 
     var allClassList = Object.keys(classDefine);
     var destPluginDir = platformInfo.locations.configXml.replace('/config.xml', '/Plugins/' + pluginId);
 
 
-    this.setup = function() {
+    this.setup = function () {
 
         var classList = [];
 
@@ -830,9 +830,9 @@ var JsManager = function(context, platformInfo, classDefine) {
 
     function createClass(classElement, className) {
 
-        var params = range(classElement.constructor.params.length).map(function(i) {return 'param' + i});
+        var params = range(classElement.constructor.params.length).map(function (i) { return 'param' + i });
         var constructorParams = (params.length == 0) ? '' : params.join(', ') + ', ';
-        range(range.length).forEach(function(i) {
+        range(range.length).forEach(function (i) {
             if (allClassList.indexOf(classElement.constructor.params[i]) > -1) {
                 params[i] += '._instanceId';
             }
@@ -869,9 +869,9 @@ var JsManager = function(context, platformInfo, classDefine) {
 
     function createMethod(methodElement, methodName, className) {
 
-        var params = range(methodElement.params.length).map(function(i) {return 'param' + i});
+        var params = range(methodElement.params.length).map(function (i) { return 'param' + i });
         var methodParams = (params.length == 0) ? '' : params.join(', ') + ', ';
-        range(range.length).forEach(function(i) {
+        range(range.length).forEach(function (i) {
             if (allClassList.indexOf(methodElement.params[i]) > -1) {
                 params[i] += '._instanceId';
             }
@@ -898,13 +898,13 @@ var JsManager = function(context, platformInfo, classDefine) {
 
 
 function copyCppFiles(context, cppDir, destCppDir, headerFiles, sourceFiles) {
-    var path              = context.requireCordovaModule('path'),
-        fs                = context.requireCordovaModule('fs');
+    var path = require('path'),
+        fs = require('fs');
 
-    headerFiles.forEach(function(f) {
+    headerFiles.forEach(function (f) {
         fs.createReadStream(path.join(cppDir, f)).pipe(fs.createWriteStream(path.join(destCppDir, f)));
     });
-    sourceFiles.forEach(function(f) {
+    sourceFiles.forEach(function (f) {
         fs.createReadStream(path.join(cppDir, f)).pipe(fs.createWriteStream(path.join(destCppDir, f)));
     });
 }
